@@ -5,14 +5,19 @@ on:
   issues:
     types: [opened]
 
+env:
+  text1: "Step 1 complete!"
+  text2: "Step 2 complete!"
+  cowsay_text: "Ready for prod–ship it!"
+
 jobs:
   job1:
     runs-on: ubuntu-latest
     steps:
       - name: step1
-        run: echo "Step 1 complete!"
+        run: echo ${{ env.text1 }}
       - name: step2
-        run: echo "Step 2 complete!"
+        run: echo ${{ env.text2 }}
 
   job2:
     runs-on: ubuntu-latest
@@ -20,5 +25,5 @@ jobs:
       - name: Cowsays
         uses: mscoutermarsh/cowsays-action@master
         with:
-          text: "Ready for prod–ship it!"
+          text: ${{ env.cowsay_text }}
           color: "magenta"
