@@ -17,6 +17,7 @@ env:
     repositoryName: techboost/dotnetcoreapp
     dockerFolderPath: ./Application/src/RazorPagesTestSample
     tag: ${{github.run_number}}
+    aapNamePrefix: vzwatlr4cx2h4
 
 jobs:
     build:
@@ -40,7 +41,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@main
       - name: Docker login
-        uses: azure/docker-login@v1.9.0
+        uses: azure/docker-login@v1
         with:
             username: ${{ secrets.REGISTRY_USERNAME }}
             password: ${{ secrets.REGISTRY_PASSWORD }}
@@ -50,4 +51,66 @@ jobs:
         run: docker build -t $registryName/$repositoryName:$tag --build-arg build_version=$tag $dockerFolderPath
       - name: Docker Push
         run: docker push $registryName/$repositoryName:$tag
-      
+
+    deploy-to-dev:
+  
+      runs-on: ubuntu-latest
+      needs: dockerBuild
+      environment:
+        name: dev
+        url: https://$aapNamePrefix-dev.azurewebsites.net/
+            
+      steps:
+        - name: 'Login via Azure CLI'
+          uses: azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+        - name: Deploy App
+          uses: azure/webapps-deploy@v2
+          with:
+            app-name: '$aapNamePrefix-dev'
+            images: $registryName/repositoryName:$tag
+
+    deploy-to-test:
+            
+        runs-on: ubuntu-latest
+        needs: deploy-to-dev
+        environment:
+            name: test
+            url: https://$aapNamePrefix-test.azurewebsites.net/
+                
+        steps:
+          - name: 'Login via Azure CLI'
+            uses: azure/login@v1
+            with:
+              creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
+          - name: Deploy App
+            uses: azure/webapps-deploy@v2
+            with:
+              app-name: '$aapNamePrefix-test'
+              images: $registryName/repositoryName:$tag
+
+    deploy-to-prod:
+                
+            runs-on: ubuntu-latest
+            needs: deploy-to-test
+            environment:
+                name: prod
+                url: https://$aapNamePrefix-prod.azurewebsites.net/
+                    
+            steps:
+            - name: 'Login via Azure CLI'
+              uses: azure/login@v1
+              with:
+                creds: ${{ secrets.AZURE_CREDENTIALS }}
+            
+            - name: Deploy App
+              uses: azure/webapps-deploy@v2
+              with:
+                app-name: '$aapNamePrefix-prod'
+                images: $registryName/repositoryName:$tag
+
+        
+         
