@@ -1,0 +1,53 @@
+name: Deploy App
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Application/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'Application/**'
+
+env:
+    registryName: vzwatlr4cx2h4mpnpreg.azurecr.io
+    repositoryName: techboost/dotnetcoreapp
+    dockerFolderPath: ./Application/src/RazorPagesTestSample
+    tag: ${{github.run_number}}
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@main
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v3
+        - name: Install dependencies
+          run: dotnet restore ./Application/src/RazorPagesTestSample/RazorPagesTestSample.csproj
+        - name: Build
+          run: dotnet build ./Application/src/RazorPagesTestSample/RazorPagesTestSample.csproj
+        - name: Test
+          run: dotnet test --no-build --verbosity normal ./Application/tests/RazorPagesTestSample.Tests/RazorPagesTestSample.Tests.csproj
+
+    dockerBuild:
+      runs-on: ubuntu-latest
+      needs: build
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+      - name: Docker login
+        uses: azure/docker-login@v1.9.0
+        with:
+            username: ${{ secrets.REGISTRY_USERNAME }}
+            password: ${{ secrets.REGISTRY_PASSWORD }}
+            registry: ${{ env.registryName }}
+            logout: true
+      - name: Docker build 
+        run: docker build -t $registryName/$repositoryName:$tag --build-arg build_version=$tag $dockerFolderPath
+      - name: Docker Push
+        run: docker push $registryName/$repositoryName:$tag
+      

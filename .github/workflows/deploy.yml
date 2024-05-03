@@ -1,7 +1,15 @@
-name: Deploy App - Dev
+name: Deploy Infrastructure As Code
 
 on:
   workflow_dispatch:
+    inputs:
+        appenv:
+          type: choice
+          description: Choose the target environment
+          options: 
+            - dev
+            - test
+            - prod
 
 env:
     dev: "dev"
@@ -32,7 +40,7 @@ jobs:
             subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
             resourceGroupName: rg-techexcel
             template: ./InfrastructureAsCode/main.bicep
-            parameters: environment=${{ env.dev }}
+            parameters: environment=${{ github.event.inputs.appenv }} #environment=${{ env.dev }}
             deploymentMode: 'Incremental'
 
 
