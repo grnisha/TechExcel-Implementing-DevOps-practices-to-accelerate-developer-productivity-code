@@ -1,0 +1,13 @@
+# Specify the owners for specific files or directories
+# Each line follows the pattern: <pattern> <owner>
+
+# Example:
+# /path/to/file @username
+
+# Specify the default owner for all files
+# Use * as the pattern to match all files
+# Each line follows the pattern: * <owner>
+
+# Example:
+# * @username
+* @grnisha
