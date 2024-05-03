@@ -37,7 +37,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 // Container Registry
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01' = {
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
   name: registryName
   location: location
   sku: {
